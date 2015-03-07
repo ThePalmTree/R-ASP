@@ -5,7 +5,7 @@ library(xlsx)
 
 # importation du fichier xls
 path = getwd()
-mydata = read.xlsx(paste(path,"/donnees_annuelles.xlsx",sep=""),1)  # read from first sheet
+mydata = read.xlsx(paste(path,"/GitHub/R-ASP/R ASP/donnees_annuelles.xlsx",sep=""),1)  # read from first sheet
 
 # regression linéraire de IO1 sur IN
 res = lm(IO1 ~ IN,data=mydata)

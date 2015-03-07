@@ -5,7 +5,7 @@ library(xlsx)
 
 # importation du fichier xls
 path = getwd()
-mydata = read.xlsx(paste(path,"/donnees_mensuelles.xlsx",sep=""),1)  # read from first sheet
+mydata = read.xlsx(paste(path,"/GitHub/R-ASP/R ASP/donnees_mensuelles.xlsx",sep=""),1)  # read from first sheet
 
 # regression linéraire de IO1 sur IN
 res = lm(IO1 ~ IN,data=mydata)
@@ -35,8 +35,16 @@ plot(res1)
 coefficients(res1)
 anova(res1)
 
-# les résultats ne semblent pas très adaptés (constante non nulle, R2 à chier), certains coefficiants sont plus grands que 1, cependant une analyse plus poussée
+# les résultats ne semblent pas très adaptés (constante non nulle, R2 à chier), cependant une analyse plus poussée
 # du modèle sans contraintes peut être interessant, pour voir à quel point le fait de fixer des contraintes réduit la qualité de la régression.
 
-# il faut trouver un package qui possède une fonction comme lm() mais avec des contraintes sur les coefficiants
+# Test du même modèle mais avec une contrainte de nullité sur la constante 
+res2= lm(IO1d~INdm[1:225,1]+INdm[1:225,2]+INdm[1:225,3]+INdm[1:225,4]+INdm[1:225,5]+INdm[1:225,6]
+         +INdm[1:225,7]+INdm[1:225,8]+INdm[1:225,9]+INdm[1:225,10]+INdm[1:225,11]+INdm[1:225,12]-1)
+summary(res2)
+plot(res2)
+coefficients(res2)
+anova(res2)
 
+# Les résultats sont bien meilleurs en terme de R2 mais il y a toujours des valeurs de coefficiants négatifs, 
+# cependant la contrainte qui impose la somme des coefficiants plus petite que un semble naturellement respectée.
