@@ -11,7 +11,11 @@ mydata = read.xlsx(paste(path,"/GitHub/R-ASP/R ASP/donnees_mensuelles.xlsx",sep=
 res = lm(IO1 ~ IN,data=mydata)
 res
 
-# création d'une matrice dont les collonnes sont le vecteur IN décalé de l'indice de colonne
+Coefficients:
+  (Intercept)           IN  
+20.3365       0.1171
+
+# création d'une matrice dont les colonnes sont le vecteur IN décalé de l'indice de colonne
 createINd = function() {
   m = matrix(c(rep(c(rep(0,237)),12)),nrow=237,byrow=TRUE)
   for (j in 1:12) {
