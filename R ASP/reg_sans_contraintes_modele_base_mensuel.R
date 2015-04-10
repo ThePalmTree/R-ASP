@@ -125,30 +125,10 @@ anova(res3)
 # Regression de : IO1_cjo[t]= ( alpha0 + alpha1*PIB_evol(t)+alpha2*Ratio_IPC(t)) * sum(i=1:12)(IN_cjo[t-i]) 
 
 res4= lm(IO1d_cut~
-          (PIB_evol[36:237]+Ratio_IPC[36:237])*(1+IN_moy[24:225]))
+           (PIB_evol[36:237]+Ratio_IPC[36:237])*(IN_moy[24:225]))
 summary(res4)
 plot(res4)
 coefficients(res4)
 anova(res4)
 
 #erreur in PIB_evol et Ratio_IPC
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
