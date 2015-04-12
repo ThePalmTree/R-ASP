@@ -100,45 +100,43 @@ anova(res3)
 # nouveau modèle :
 # Regression de : IO1_cjo[t]= ( alpha0 + alpha1*PIB_evol(t)+alpha2*Ratio_IPC(t)) * sum(i=1:12)(IN_cjo[t-i]) 
 res4= lm(IO1d_cut~
-<<<<<<< HEAD
+
            (PIB_evol[36:237]+Ratio_IPC[36:237])*(IN_moy[24:225]))
-=======
-           (PIB_evol[36:237]+Ratio_IPC[36:237])*(1+IN_moy[24:225]))
->>>>>>> origin/master
+
 summary(res4)
 plot(res4)
 coefficients(res4)
 anova(res4)
 #erreur in PIB_evol et Ratio_IPC
-<<<<<<< HEAD
-=======
+
 
 # OBJETS TS + DECOMPOSITION
-IO1d_cutts<-ts(IO1d_cut, start=c(1995, 1), end=c(2014, 9), frequency=12)
+
+
+IO1dts<-ts(IO1d, start=c(1996, 1), end=c(2014, 9), frequency=12)
 IN_moyts<-ts(IN_moy, start=c(1995, 1), end=c(2014, 9), frequency=12)
-IO1d_cutdecomp<-decomp(IO1d_cutts)
 # IO1d_cutdecomp$seasonal donne la partie saisonnière sous forme de vecteur
 # IO1d_cutdecomp$trend donne la tendance sous forme de vecteur
 # IO1d_cutdecomp$random donne la partie aléatoire sous forme de vecteur
-IN_moydecomp<-decomp(IN_moyts)
+IO1d_decomp<-decompose(IO1dts)
+IO1d_decomp_trend<-IO1d_decomp$trend
+IN_moydecomp<-decompose(IN_moyts)
+IN_moydecomp_trend<-IN_moydecomp$trend
+
+
+
+# regression avec les series desaisonnalisees, on a supprime le PIB (non significatif)
+res5= lm(IO1d_decomp_trend[36:237]~
+         (Ratio_IPC[36:237])*(IN_moydecomp_trend[24:225]))
+
+summary(res5)
+plot(res5)
+coefficients(res5)
+anova(res5)
+
+
 
 
 
  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> origin/master
