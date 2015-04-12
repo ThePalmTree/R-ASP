@@ -1,11 +1,10 @@
-
 # veuillez installer le package xlsx, et activer les packages rJava, xlsxjars et xlsx dans cet ordre pour pouvoir importer les fichiers xlsx
 library(rJava,xlsxjars)
 library(xlsx)
 
 # importation du fichier xls
 path = getwd()
-mydata = read.xlsx("C:\\Users\\lenovo\\Documents\\GitHub\\R-ASP\\R ASP\\donnees_mensuelles.xlsx",1)  # read from first sheet
+mydata = read.xlsx("C:/Users/Mathieu/Desktop/ENSAE/2A/Stat'App/Nouveau dossier/donnees_mensuelles.xlsx",1)  # read from first sheet
 
 # declaration des variables
 
@@ -100,7 +99,7 @@ anova(res3)
 # nouveau modèle :
 # Regression de : IO1_cjo[t]= ( alpha0 + alpha1*PIB_evol(t)+alpha2*Ratio_IPC(t)) * sum(i=1:12)(IN_cjo[t-i]) 
 res4= lm(IO1d_cut~
-
+           
            (PIB_evol[36:237]+Ratio_IPC[36:237])*(IN_moy[24:225]))
 
 summary(res4)
@@ -127,7 +126,7 @@ IN_moydecomp_trend<-IN_moydecomp$trend
 
 # regression avec les series desaisonnalisees, on a supprime le PIB (non significatif)
 res5= lm(IO1d_decomp_trend[36:237]~
-         (Ratio_IPC[36:237])*(IN_moydecomp_trend[24:225]))
+           (Ratio_IPC[36:237])*(IN_moydecomp_trend[24:225]))
 
 summary(res5)
 plot(res5)
@@ -135,8 +134,13 @@ coefficients(res5)
 anova(res5)
 
 
+# Création des variables de consommation des voitures
+conso_VN=mydata$conso_VN
+conso_IO1<-c(rep(0,12),mydata$conso_VN[1:225])
+# conso_IO14 : comment déterminer quelle année de consommation VN il faut considérer... ?
+# conso_IO4 : même problème !
 
 
-
- 
-
+# Création des indices de consommation
+consoVNtemp<-conso_VN[1:237]
+ratio_consoIO1IN <- conso_IO1/consoVNtemp # N'a de sens (bien-entendu) qu'à partir de 1996
