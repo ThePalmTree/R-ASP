@@ -110,3 +110,24 @@ anova(res5)
 
 # On a enfin un coeff devant IN_moy qui est cohérent
 # Les autres restent à analyser
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# faire avec IO14 pour capter l'effet de l'inovation technologique
+# vérifier que ce n'est pas juste l'effet du prix de l'essence
+# mensualiser avec le prix de l'essence du mois
