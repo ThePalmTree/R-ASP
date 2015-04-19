@@ -5,6 +5,5 @@ library(rJava,xlsxjars)
 library(xlsx)
 
 # importation du fichier xls
-path = getwd()
-mydata = read.xlsx("C:/Users/Loïc/Documents/GitHub/R-ASP/R ASP/donnees_mensuelles.xlsx",1)  # read from first sheet
+mydata = read.xlsx(paste(getwd(),"/donnees_mensuelles.xlsx",sep=""),1)  # read from first sheet
 
