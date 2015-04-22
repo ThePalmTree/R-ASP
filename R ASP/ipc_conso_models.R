@@ -15,7 +15,7 @@ PIB_evol=mydata$PIB_evol
 
 
 # creation de l a matrice de regression
-IN_mat = create_mat(INt_cjo)
+IN_mat = create_mat(INreg_cjo)
 
 # cette matrice commence à la date 13 et finit à la date 237
 # néanmoins, les 6 premières valeurs et les 6 dernières sont N.A
@@ -133,16 +133,139 @@ plot(fitted(res6))
 # Les autres restent à analyser
 
 
+# Modele avec Prix du Carburant
+
+# Creation des variables de consommation des voitures
+carbu=mydata$IPC_carbu
+#carbu commence à la date 1 et finit à la date 240
+carbu_IN_moy = carbu[35:237]*IN_moy[23:225]
+carbu_Ratio_conso_IN_moy = carbu[35:237]*ratio_conso_IN_moy[1:203]
+# Carbu représente le prix du carburant
+# Carbu*Ratio_conso pondère l'importance d'une conommation faible
+# ie: l'arbitrage entre l'achat d'une voiture d'occasion ou celle d'une voiture neuve dépend du coût d'utilisation
+# rq: si Carbu n'a pas d'influence significative, alors les conso intègrent le coût d'utilisation dans conso uniquement
+# rq: si en revanche Carbu a une influence, on deux phénomènes : arbitrage à l'achat et arbitrage contextuel
+
+
+# On régresse en ajoutant le Bruit et avec un échantillon réduit.
+res7= lm(IO1reg_cjo[35:131]~
+           carbu_IN_moy[1:97] + 
+           carbu_Ratio_conso_IN_moy[1:97] + 
+           ratio_conso_IN_moy[1:97] + 
+           Ratio_IPC_IN_moy[1:97] + 
+           IN_moy[23:119] - 1)
+
+summary(res7)
+plot(res7)
+coefficients(res7)
+anova(res7)
+plot(IO1t_cjo)
+par(new=T)
+plot(fitted(res7))
+
+A=-0.014400*carbu_IN_moy[1:197]+0.014167*carbu_Ratio_conso_IN_moy[1:197]-1.633273*ratio_conso_IN_moy[1:197]-0.034510*Ratio_IPC_IN_moy[1:197]+1.710943*IN_moy[23:219]
+
+plot(IO1t_cjo)
+par(new=T)
+plot(A)
+
+# On obtient un excellent R² ajusté, cela nous a amené à faire le même test sur une plus petite portion de 
+# l'échantillon pour tester une éventuelle co-intégration
+# On obtient de très mauvais résultats de prévision
+
+
+
+
+# Tests de Cointégration
+
+PP.test(IO1reg_cjo[7:210])
+# un test de Philipps Pearson ne nous permet pas de rejeter la non stationnarité des variables étudiées
+kpss.test(IO1reg_cjo[7:210])
+# un test KPSS confirme la non stationnarité (pvalue<0.01)
+regression = lm(IO1reg_cjo[7:210] ~ INreg_cjo[7:210] -1)
+summary(regression)
+beta = coef(regression)[1]
+adf.test(cbind(IO1reg_cjo[7:210]-beta*INreg_cjo[7:210]))
+# un test ADF sur le spread confirme la cointégration (pvalue<0.09)
+# On a bien une cointégration entre IN et IO, cependant, il semblerait que cette cointégration soit logique en
+# raison de la nature des variables
+carbu_ratio_conso=carbu[35:237]*ratio_conso[35:237]
+
+#mydata2 <- cbind(IO1reg_cjo[23:219],
+#                Ratio_IPC[35:231],
+#                carbu[35:231],
+#                ratio_conso[35:231],
+#                carbu_ratio_conso[1:197],
+#                carbu_IN_moy[1:197],
+#                carbu_Ratio_conso_IN_moy[1:197],
+#                ratio_conso_IN_moy[1:197],
+#                Ratio_IPC_IN_moy[1:197], 
+#                IN_moy[23:219])
+
+cor(Ratio_IPC[35:231],carbu[35:231])
+# -0.73
+plot(Ratio_IPC[35:231])
+plot(carbu[35:231])
+cor(Ratio_IPC[35:231],ratio_conso[35:231])
+# -0.46
+cor(Ratio_IPC[35:231],carbu_ratio_conso[1:197])
+# -0.73
+cor(carbu[35:231],ratio_conso[35:231])
+# 0.52
+cor(carbu[35:231],carbu_ratio_conso[1:197])
+# 0.99
+cor(ratio_conso[35:231],carbu_ratio_conso[1:197])
+# 0.58
+
+plot(carbu)
+plot(ratio_conso[35:237])
+res=lm(carbu[35:231]~ratio_conso[35:231])
+summary(res)
+cor(IO1reg_cjo[23:219],ratio_conso[35:231])
+
+print(IO1reg_cjo)
 
 
 
 
 
+# Etude des séries différentiées
 
+INreg_lag=INreg_cjo[10:231]-INreg_cjo[7:228]
+IO1reg_lag=IO1reg_cjo[10:219]-IO1reg_cjo[7:216]
+IN_mat_lag = create_mat(INreg_lag)
+IN_moy_lag = IN_mat_lag%*%M
 
+plot(INreg_cjo)
+plot(IO1reg_cjo)
+plot(IN_moy_lag)
 
+PP.test(IN_moy_lag[1:211]) 
+# lag=1:pvalue 0.2643
+# lag=2:pvalue 0,2912
+# lag=3:pvalue 0,3166
+kpss.test(IN_moy_lag[1:211]) 
+# lag=1:pvalue 0.0834
+# lag=2:pvalue 0,0817
+# lag=3:pvalue 0,0787
+print(IN_moy_lag[1:211])
 
+PP.test(IO1reg_lag[1:210]) 
+# lag=1:pvalue 0.0201
+# lag=2:pvalue 0.1639
+# lag=3:pvalue 0.2886
+kpss.test(IO1reg_lag[1:210]) 
+# lag=1:pvalue 0.01
+# lag=2:pvalue 0.01
+# lag=3:pvalue 0.01
+print(IO1reg_lag[1:210])
 
+regression = lm(IO1reg_lag[1:210] ~ IN_moy_lag[1:210] -1)
+beta = coef(regression)[1]
+adf.test(cbind(IO1reg_lag[1:210]-beta*IN_moy_lag[1:210]))
+# lag=3:pvalue 0.1161
+
+# Conclusion: l'étude des séries différenciées ne permet pas d'éliminer la cointégration
 
 
 
