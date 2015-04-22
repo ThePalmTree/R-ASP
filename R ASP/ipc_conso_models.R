@@ -3,6 +3,7 @@
 # Nettoyage de l'environement de travail
 rm(list=ls())
 setwd("~/GitHub/R-ASP/R ASP")
+library(tseries)
 
 #Importation des fichiers R nécéssaires
 source("desaisonnalisation.r")
@@ -15,7 +16,7 @@ PIB_evol=mydata$PIB_evol
 
 
 # creation de l a matrice de regression
-IN_mat = create_mat(INreg_cjo)
+IN_mat = create_mat(IN_cjo)
 
 # cette matrice commence à la date 13 et finit à la date 237
 # néanmoins, les 6 premières valeurs et les 6 dernières sont N.A
@@ -231,7 +232,45 @@ print(IO1reg_cjo)
 
 # Etude des séries différentiées
 
-INreg_lag=INreg_cjo[10:231]-INreg_cjo[7:228]
+
+IN_lag=IN_cjo[2:237]-IN_cjo[1:236]
+IO1_lag=IO1_cjo[2:225]-IO1_cjo[1:224]
+IN_mat_lag = create_mat(IN_lag)
+IN_moy_lag = IN_mat_lag%*%M
+
+print(IO1)
+
+PP.test(IN_moy_lag[1:223]) 
+# lag=1:pvalue 0.01
+# lag=2:pvalue 0.01
+# lag=3:pvalue 0.01
+kpss.test(IN_moy_lag[1:223]) 
+# lag=1:pvalue 0.1
+# lag=2:pvalue >0.1
+# lag=3:pvalue >0.1
+print(IN_moy_lag[1:225])
+
+PP.test(IO1_lag[1:222]) 
+# lag=1:pvalue 0.01
+# lag=2:pvalue 0.01
+# lag=3:pvalue 0.01
+kpss.test(IO1_lag[1:222]) 
+# lag=1:pvalue >0.1
+# lag=2:pvalue >0.1
+# lag=3:pvalue >0.1
+print(IO1_lag[1:210])
+
+regression = lm(IO1_lag[1:223] ~ IN_moy_lag[1:223] -1)
+beta = coef(regression)[1]
+adf.test(cbind(IO1_lag[1:223]-beta*IN_moy_lag[1:223]))
+summary(regression)
+# lag=1:pvalue 0.01<
+# lag=2:pvalue 0.01<
+# lag=3:pvalue 0.01<
+
+# On retient la différenciation au premier degré de lag
+
+INreg_lag=IN[1:237]-INreg_cjo[2:228]
 IO1reg_lag=IO1reg_cjo[10:219]-IO1reg_cjo[7:216]
 IN_mat_lag = create_mat(INreg_lag)
 IN_moy_lag = IN_mat_lag%*%M
@@ -265,7 +304,62 @@ beta = coef(regression)[1]
 adf.test(cbind(IO1reg_lag[1:210]-beta*IN_moy_lag[1:210]))
 # lag=3:pvalue 0.1161
 
-# Conclusion: l'étude des séries différenciées ne permet pas d'éliminer la cointégration
+# Conclusion: l'étude des séries différenciées ne permet pas d'éliminer la cointégration pour les séries reg mais
+# fonctionne très bien pour les séries IO1 et IN brutes
+
+Ratio_IPC_lag = Ratio_IPC[36:237]-Ratio_IPC[35:236]
+plot(Ratio_IPC_lag)
+PP.test(Ratio_IPC_lag[1:202]) 
+# lag=1:pvalue 0.01
+kpss.test(Ratio_IPC_lag[1:202]) 
+# lag=1:pvalue 0.09
+
+carbu_lag = carbu[2:237]-carbu[1:236]
+plot(carbu_lag)
+PP.test(carbu_lag[1:236]) 
+# lag=1:pvalue 0.01
+kpss.test(carbu_lag[1:236]) 
+# lag=1:pvalue 0.01<
+
+ratio_conso_lag = ratio_conso[48:237]-ratio_conso[35:224]
+print(ratio_conso_lag)
+plot(ratio_conso_lag[1:190])
+PP.test(ratio_conso_lag[1:190]) 
+# lag=1:pvalue 0.088 bof
+kpss.test(ratio_conso_lag[1:190]) 
+# lag=1:pvalue 0.01<
+
+
+
+
+
+# Regression avec les variables stationnarisées
+
+carbu_IN_moy_lag=carbu[35:236]*IN_moy_lag[24:225]
+Ratio_IPC_IN_moy_lag=Ratio_IPC[1:202]*IN_moy_lag[24:225]
+print(carbu_IN_moy_lag)
+print(IO1_lag)
+
+res8= lm(IO1_lag[23:124]~
+           carbu_IN_moy_lag[1:102] + 
+#           carbu_Ratio_conso_IN_moy[1:197] + 
+#           ratio_conso_IN_moy_lag[1:197] + 
+           Ratio_IPC_IN_moy_lag[1:102] + 
+           IN_moy_lag[24:125] - 1)
+
+summary(res8)
+plot(res8)
+coefficients(res8)
+anova(res8)
+plot(IO1t_cjo)
+par(new=T)
+plot(fitted(res8))
+
+A=coef(res8)[1]*carbu_IN_moy[1:202]+coef(res8)[2]*Ratio_IPC_IN_moy[1:202]+coef(res8)[3]*IN_moy[24:225]
+
+plot(IO1t_cjo)
+par(new=T)
+plot(A)
 
 
 
