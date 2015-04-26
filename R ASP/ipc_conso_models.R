@@ -76,10 +76,13 @@ log_IN_moy = log(create_mat(IN_cjo)%*%M) #13 à 237
 log_IO1t = log(IO1t_cjo) #13à 18: NA / 19 à 231  /232 à 237: NA
 log_carbu_ratio_conso_ratio_IPC =log(ratio_conso [35:237]+carbu[35:237]+Ratio_IPC[35:237])
 
-####### declaration des variables log sans prime à la casse
-log_IN_moy_D = log_IN_moy[23:219]*D[35:231]
-log_IO1t_D = log_IO1t[35:231]*D[35:231]
-log_carbu_ratio_conso_ratio_IPC_D = log_carbu_ratio_conso_ratio_IPC[1:197]*D[35:231]
+####### declaration des variables log sans prime à la casse et la crise
+# tronqués de 146 à 181
+# Les vecteurs suivant vont de la date 35 à 146 puis de 181 à 231
+#taille 175
+log_IN_moy_D = c(log_IN_moy[23:134],log_IN_moy[169:219]) 
+log_IO1t_D = c(log_IO1t[35:146],log_IO1t[181:231])
+log_carbu_ratio_conso_ratio_IPC_D = c(log_carbu_ratio_conso_ratio_IPC[1:112],log_carbu_ratio_conso_ratio_IPC[147:197])
 
 ###########################################################################################################
 
@@ -386,20 +389,18 @@ plot(fitted(res9))
 
 # R²=0.77
 
-# sans la prime à la casse
+# sans la prime à la casse et crise de 2007 (dates tronquées de 146 à 181 )
 
 res9b= lm(log_IO1t_D~ log_carbu_ratio_conso_ratio_IPC_D + log_IN_moy_D)
 summary(res9b)
 plot(res9b)
 coefficients(res9b)
 anova(res9b)
-plot(log_IO1t_D[35:231])
+plot(log_IO1t_D)
 par(new=T)
 plot(fitted(res9b))
 
-# R² = 0.997
-
-
+# R² = 0.83
 
 
 ###########################################################################################################
