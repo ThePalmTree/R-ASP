@@ -402,7 +402,11 @@ plot(fitted(res9b))
 
 # R² = 0.83
 
+par(new = TRUE)
+plot(fitted(res9b)[1:100], log_IO1t_D[1:100], axes = FALSE)
+axis(side=4, at = pretty(range(z)))
 
+cor(carbu[35:237],Ratio_IPC[1:203])
 ###########################################################################################################
 
 # faire avec IO14 pour capter l'effet de l'inovation technologique
