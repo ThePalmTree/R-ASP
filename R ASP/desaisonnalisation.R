@@ -49,14 +49,14 @@ plot(IO1_decomp_mult)
 
 # Création des variables désaisonnalisées
 
-INt_cjo = IN_decomp_mult$trend
-INs_cjo = IN_decomp_mult$seasonal
-INr_cjo = IN_decomp_mult$random
+INt_cjo = IN_decomp_add$trend
+INs_cjo = IN_decomp_add$seasonal
+INr_cjo = IN_decomp_add$random
 INreg_cjo = INt_cjo+INr_cjo
 
-IO1t_cjo = IO1_decomp_mult$trend
-IO1s_cjo = IO1_decomp_mult$seasonal
-IO1r_cjo = IO1_decomp_mult$random
+IO1t_cjo = IO1_decomp_add$trend
+IO1s_cjo = IO1_decomp_add$seasonal
+IO1r_cjo = IO1_decomp_add$random
 IO1reg_cjo = IO1t_cjo + IO1r_cjo
 # INt va de juillet 1995 à mars 2014
 # IO1 va de juillet 1996 à mars 2014
