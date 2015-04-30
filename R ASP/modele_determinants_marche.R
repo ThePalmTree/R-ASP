@@ -23,6 +23,12 @@ conso_IO1=c(rep(0,12),mydata$conso_VN[1:225])
 ratio_conso=conso_IO1/conso_VN[1:237] 
 M = matrix(1,12,1)
 INt_moy = create_mat(INt_cjo)%*%M
+INreg_moy = create_mat(INreg_cjo)%*%M
+
+croissance_INreg_moy = croissance[35:231]*INreg_moy[23:219]
+ratio_conso_INreg_moy = ratio_conso[35:231]*INreg_moy[23:219]
+Ratio_IPC_INreg_moy = Ratio_IPC[35:231]*INreg_moy[23:219]
+carbu_INreg_moy = carbu[35:231]*INreg_moy[23:219]
 
 croissance_INt_moy = croissance[35:231]*INt_moy[23:219]
 ratio_conso_INt_moy = ratio_conso[35:231]*INt_moy[23:219]
@@ -31,65 +37,133 @@ carbu_INt_moy = carbu[35:231]*INt_moy[23:219]
 
 # Variables utilisées dans les tests
 IN_moy = create_mat(INt_cjo)%*%M
-INres_moy= IN_moy[7:219]-INt_moy[7:219]
-INt_moy_2 = c(INt_moy[23:169],INt_moy[193:219])
-print(IO1t_cjo_2)
-print(INt_moy_2)
+INres_moy= IN_moy[7:219]-INreg_moy[7:219]
+INreg_moy_2 = c(INreg_moy[23:169],INreg_moy[193:219])
+print(IO1reg_cjo_2)
+print(INreg_moy_2)
 
 ###########################################################################################################
 # Troncature de la période 2008-2009
 
 # la période décembre 2008 - decembre 2010 représente les dates 169 à 193
-IO1t_cjo_2 = c(IO1t_cjo[23:157],IO1t_cjo[181:219])
-ratio_conso_INt_moy_2 = c(ratio_conso_INt_moy[1:135],ratio_conso_INt_moy[159:197])
-Ratio_IPC_INt_moy_2 = c(Ratio_IPC_INt_moy[1:135],Ratio_IPC_INt_moy[159:197])
-carbu_INt_moy_2 = c(carbu_INt_moy[1:135],carbu_INt_moy[159:197])
-croissance_INt_moy_2 = c(croissance_INt_moy[1:135],croissance_INt_moy[159:197])
+croissance_2=c(croissance[35:169],croissance[193:231])
+INreg_moy_2=c(INreg_moy[23:157],INreg_moy[181:219])
+IO1reg_cjo_2 = c(IO1reg_cjo[23:157],IO1reg_cjo[181:219])
+ratio_conso_INreg_moy_2 = c(ratio_conso_INreg_moy[1:135],ratio_conso_INreg_moy[159:197])
+Ratio_IPC_INreg_moy_2 = c(Ratio_IPC_INreg_moy[1:135],Ratio_IPC_INreg_moy[159:197])
+carbu_INreg_moy_2 = c(carbu_INreg_moy[1:135],carbu_INreg_moy[159:197])
+croissance_INreg_moy_2 = c(croissance_INreg_moy[1:135],croissance_INreg_moy[159:197])
 
-###########################################################################################################
-# Vérification des hypothèses liées au traitement des données
-
-# Vérification que les résidus de la désaisonnalisation sont des BB
-# test porte-manteau réalisé dans le dossier désaisonnalisation
-# normalement R désaisonnalise en mettant le résidu BB
- 
 ###########################################################################################################
 # Critique de la pertinence du PIB (de la croissance)
-res10= lm(IO1t_cjo_2 ~ croissance_INt_moy_2 )
+res10= lm(log(IO1reg_cjo_2)~ log(1+croissance_2)+log(INreg_moy_2))
 summary(res10)
-
-plot(IO1t_cjo_2)
+plot(croissance_2)
+plot(IO1reg_cjo_2)
 par(new=T)
 plot(fitted(res10))
-#R2 0.2, pvalue ***, la croissance semble expliquer l'arbitrage entre l'achat de voiture neuve ou d'occasion
 
-print(IO1t_cjo_2)
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)            -3.8230     0.9903  -3.860  0.00016 ***
+#  log(1 + croissance_2)  13.0224     1.7058   7.634 1.53e-12 ***
+#  log(INreg_moy_2)        0.9835     0.1300   7.564 2.30e-12 ***
+#  ---
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+# Residual standard error: 0.1245 on 171 degrees of freedom
+# Multiple R-squared:  0.4158,  Adjusted R-squared:  0.4089 
+# F-statistic: 60.84 on 2 and 171 DF,  p-value: < 2.2e-16
+
+# R2 0.4, pvalue ***, la croissance semble expliquer l'arbitrage entre l'achat de voiture neuve ou d'occasion
+
+print(IO1reg_cjo_2)
 
 # Test de l'homoscédasticité des résidus
-residu=cbind(IO1t_cjo_2[1:174])-cbind(fitted(res10)[1:174])
+residu=cbind(IO1reg_cjo_2[1:174])-cbind(fitted(res10)[1:174])
 print(residu)
 print(cbind(fitted(res10)))
-print(cbind(IO1t_cjo_2))
+print(cbind(IO1reg_cjo_2))
 bartlett.test(list(residu[1:87]),list(residu[88:174]))
 #/!\
 
 # Test de GRANGER
-granger.test(cbind(IO1t_cjo_2,croissance_INt_moy_2),12)
+granger.test(cbind(IO1reg_cjo_2,croissance_INreg_moy_2),12)
 # H0 Croissance do not granger_cause IO1:
-# pvalue = 1,68*10^-8
+# pvalue = 0.9625596
 # -> on ne peut pas rejeter H0
 # H0' IO1 do not granger_cause croissance:
-# pvalue = 6,79*10^-2
+# pvalue = 0.2901934
 # -> on ne peut pas rejeter H0'
 # les pvalues très faibles suggèrent qu'il n'existe pas de causalité (au sens de GRANGER) entre IO1 et la croissance
 
 ###########################################################################################################
 # Modèle multiplicatif
 
-res11= lm(IO1t_cjo_2 ~ ratio_conso_INt_moy_2 + Ratio_IPC_INt_moy_2 )
+#1)
+
+# Test de cointégration
+regression = lm(IO1reg_cjo[7:210] ~ INreg_cjo[7:210] -1)
+summary(regression)
+# R2 de 0,95 ! pvalue <2e-16
+beta = coef(regression)[1]
+adf.test(cbind(IO1reg_cjo[7:210]-beta*INreg_cjo[7:210]))
+# LAG : 5 ; pvalue = 0.116
+kpss.test(cbind(IO1reg_cjo[7:210]-beta*INreg_cjo[7:210]))
+# LAG : 3 ; pvalue = 0.01
+# ADF ne permet pas d'exclure la stationnarité de la série IO1-Beta*IN à 10% et donc d'exclure la cointégration
+# KPSS confirme la non stationnarité avec une pvalue très petite (permet de rejeter H0 : la non cointégration)
+
+regression = lm(IO1reg_cjo_2 ~ INreg_moy_2 -1)
+summary(regression)
+
+#Residuals:
+#  Min       1Q   Median       3Q      Max 
+#-16.6268  -3.9337   0.7427   4.3478  14.7586 
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+# INreg_moy_2 0.0216056  0.0002325   92.91   <2e-16 ***
+#  ---
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+#Residual standard error: 6.286 on 173 degrees of freedom
+#Multiple R-squared:  0.9804,  Adjusted R-squared:  0.9802 
+#F-statistic:  8632 on 1 and 173 DF,  p-value: < 2.2e-16
+
+
+# R2 0.98
+
+# On en déduit qu'il n'y a pas de cointégration entre IO1 et IN, le R2 mesuré est donc significatif
+
+# Remarque 2 : le fait que le R2 soit si bon constitue déjà une bonne preuve en soi de la cointégration
+# Remarque 3 : IN et IO1 devraient logiquement être fortement cointégrés
+
+
+
+#3)
+
+res11= lm(IO1reg_cjo_2 ~ ratio_conso_INreg_moy_2 + Ratio_IPC_INreg_moy_2 )
 summary(res11)
 
-plot(IO1t_cjo_2)
+#Residuals:
+#  Min       1Q   Median       3Q      Max 
+#-11.8322  -3.0122  -0.7007   3.0205  12.7112 
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)             29.474206   5.109754   5.768 3.67e-08 ***
+#  ratio_conso_INreg_moy_2 -0.042329   0.004745  -8.922 6.88e-16 ***
+#  Ratio_IPC_INreg_moy_2    0.049325   0.003370  14.636  < 2e-16 ***
+#  ---
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+# Residual standard error: 4.453 on 171 degrees of freedom
+# Multiple R-squared:  0.6177,  Adjusted R-squared:  0.6132 
+# F-statistic: 138.1 on 2 and 171 DF,  p-value: < 2.2e-16
+
+
+plot(IO1reg_cjo_2)
 par(new=T)
 plot(fitted(res11))
 
@@ -97,11 +171,11 @@ plot(fitted(res11))
 # je ne sais pas comment tester ça
 
 # Test de l'homoscédasticité des résidus MLR 5
-bartlett.test(IO1t_cjo_2-fitted(res11))
+bartlett.test(IO1reg_cjo_2-fitted(res11))
 #/!\ pb dans le code, à revoir
 
 # Analyse critique des résultats
-# R2 ajusté : 0,69, toutes les p-values à ***
+# R2 ajusté : 0,61, toutes les p-values à ***
 # Ratio IPC * IN_moy a une pvalue particulièrement petite : capte l'arbitrage des prix
 # Ratio conso * IN_moy a un coeff négatif : effet inverse de ratio IPC : favorise IN en cas de faible consommation des voitures neuves
 
@@ -114,45 +188,35 @@ bartlett.test(IO1t_cjo_2-fitted(res11))
 # ce phénomène n'a aucun fondement économique et résulte uniquement de cointégration entre la croissance et le ratio conso
 # en effet, ces deux séries sont monotones
 
-# Test de cointégration
-regression = lm(IO1reg_cjo[7:210] ~ INreg_cjo[7:210] -1)
-summary(regression)
-# R2 de 0,95 ! pvalue <2e-16
-beta = coef(regression)[1]
-adf.test(cbind(IO1reg_cjo[7:210]-beta*INreg_cjo[7:210]))
-# LAG : 5 ; pvalue = 0.116
-kpss.test(cbind(IO1reg_cjo[7:210]-beta*INreg_cjo[7:210]))
-# LAG : 3 ; pvalue = 0.01
-# ADF ne permet pas d'exclure la stationnarité de la série IO1-Beta*IN à 10% et donc d'exclure la cointégration
-# KPSS confirme la non stationnarité avec une pvalue très petite (ne permet pas de rejeter H1 : la non cointégration)
-
-regression = lm(IO1t_cjo_2 ~ INt_moy_2 -1)
-summary(regression)
-# R2 0.98
-
-# On en déduit qu'il n'y a pas de cointégration entre IO1 et IN, le R2 mesuré est donc significatif
-
-# Remarque 2 : le fait que le R2 soit si bon constitue déjà une bonne preuve en soi de la cointégration
-# Remarque 3 : IN et IO1 devraient logiquement être fortement cointégrés
-
 # Mesure de la causalité : GRANGER test
-granger.test(cbind(IO1t_cjo_2,INt_moy_2),12)
+granger.test(cbind(IO1reg_cjo_2,INreg_moy_2),12)
 # H0 : IN do not granger_cause IO
-# pvalue O,998 !! -> rejet catégorique de H0 à 0,1 %
+# pvalue 0,06 -> rejet de H0 à 6 %
 # IN influe IO
 # H0' : IO do not granger_cause IN
-# pvalue 0,367 -> rejet également de H0' à 5%
-# IO influence également IN dans une moindre mesure
+# pvalue 0,03 -> rejet également de H0' à 5%
+# IO influence également IN dans une certaine mesure
 # économiquement, il est tout à fait raisonnable que le marché d'occasion influence rétroactivment celui du neuf
 # le lag considéré étant de 12 mois (dans les deux sens?)
 # les résultats de ce test sont excellents
-granger.test(cbind(IO1t_cjo_2, ratio_conso_INt_moy_2, Ratio_IPC_INt_moy_2, croissance_INt_moy_2),12)
-# met en évidence l'importance de toutes les variables pour expliquer IO1t excepté la croissance
-# parfaitement cohérent avec tous les résultats précédents
-# les autres explications avec une pvalue faible traduisent la non inter-explication des variables explicatives déjà
-# mis en avant lors de l'étude des corrélations
-# les autres explications inter-variables explicatives sont anormalement hautes du fait de la présence de IN comme facteur 
-# multiplicatif dans les deux variables et ne pose pas de problème.
+granger.test(cbind(IO1reg_cjo_2, ratio_conso_INreg_moy_2, Ratio_IPC_INreg_moy_2, croissance_INreg_moy_2),12)
+
+
+#                                                 F-statistic    p-value
+#ratio_conso_INreg_moy_2 -> IO1reg_cjo_2             1.3005901 0.22489517 
+#Ratio_IPC_INreg_moy_2 -> IO1reg_cjo_2               1.6630013 0.08161912 ratio IPC explique IO1
+#croissance_INreg_moy_2 -> IO1reg_cjo_2              0.3974800 0.96255959 croissance n'explique pas IO1
+#IO1reg_cjo_2 -> ratio_conso_INreg_moy_2             1.5223031 0.12309815 IO1 explique légèrement ratio conso
+#Ratio_IPC_INreg_moy_2 -> ratio_conso_INreg_moy_2    1.1810155 0.30261571
+#croissance_INreg_moy_2 -> ratio_conso_INreg_moy_2   0.3397650 0.98031710 (°)
+#IO1reg_cjo_2 -> Ratio_IPC_INreg_moy_2               1.8748480 0.04256288 IO1 explique ratio IPC
+#ratio_conso_INreg_moy_2 -> Ratio_IPC_INreg_moy_2    1.0746697 0.38617142 (°)
+#croissance_INreg_moy_2 -> Ratio_IPC_INreg_moy_2     0.7781614 0.67203210 (°)
+#IO1reg_cjo_2 -> croissance_INreg_moy_2              1.1984712 0.29019342
+#ratio_conso_INreg_moy_2 -> croissance_INreg_moy_2   0.9599509 0.49010334 (°)
+#Ratio_IPC_INreg_moy_2 -> croissance_INreg_moy_2     0.4825049 0.92222231 (°)
+
+#(°) : les variables explicatives ne s'interexpliquent pas les unes les autres
 
 ###########################################################################################################
 # Modèle VAR
