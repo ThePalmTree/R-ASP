@@ -6,6 +6,8 @@ rm(list=ls())
 setwd("~/GitHub/R-ASP/R ASP")
 library(tseries)
 library(MSBVAR)
+library(car)
+library(lmtest)
 
 #Importation des fichiers R nécéssaires
 source("desaisonnalisation.r")
@@ -79,13 +81,57 @@ plot(fitted(res10))
 
 print(IO1reg_cjo_2)
 
-# Test de l'homoscédasticité des résidus
-residu=cbind(IO1reg_cjo_2[1:174])-cbind(fitted(res10)[1:174])
-print(residu)
-print(cbind(fitted(res10)))
-print(cbind(IO1reg_cjo_2))
-bartlett.test(list(residu[1:87]),list(residu[88:174]))
-#/!\
+# Test de l'hétérocédasticité des résidus : test de White
+# H0 : var(résidu)=cste (homoscédasticité)
+# H1 : var(résidu) non cste (hétéroscédasticité)
+
+white.test()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Test d'autocorrélation des résidus : Durbin & Watson Test
+# H0 : phi=0 absence de corrélation entre les résidus
+# H1 : phi non nul : corrélation entre les résidus
+# la lecture de la table de durbin et watson donne les zones de rejet
+# n=200, k=2 (2 variables explicatives et 200 observations)
+# 0 -> 1,653 : rejet de H0
+# 1,653 -> 1,693 : incertitude
+# 1,693 -> 2,307 : non rejet de H0
+# 2,307 -> 2,347 : incertitude
+# 2,347 -> 4 : rejet de H0
+
+dwtest(log(IO1reg_cjo_2)~ log(1+croissance_2)+log(INreg_moy_2))
+
+#data:  log(IO1reg_cjo_2) ~ log(1 + croissance_2) + log(INreg_moy_2)
+#DW = 0.3865, p-value < 2.2e-16
+#alternative hypothesis: true autocorrelation is greater than 0
+# rejet de H0, il y a autocorrelation des résidus
+
+# H0 est rejeté, on estime les coefficients avec la méthode de Prais-Winsten
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Test de GRANGER
 granger.test(cbind(IO1reg_cjo_2,croissance_INreg_moy_2),12)
@@ -132,7 +178,35 @@ summary(regression)
 #F-statistic:  8632 on 1 and 173 DF,  p-value: < 2.2e-16
 
 
-# R2 0.98
+# Test d'autocorrélation des résidus : Durbin & Watson Test
+# H0 : phi=0 absence de corrélation entre les résidus
+# H1 : phi non nul : corrélation entre les résidus
+# la lecture de la table de durbin et watson donne les zones de rejet
+# n=200, k=1 (1 variable explicative et 200 observations)
+# 0 -> 1,664 : rejet de H0
+# 1,664 -> 1,684 : incertitude
+# 1,684 -> 2,316 : non rejet de H0
+# 2,316 -> 2,336: incertitude
+# 2,336 -> 4 : rejet de H0
+
+dwtest(IO1reg_cjo_2 ~ INreg_moy_2 -1)
+#Durbin-Watson test
+#data:  IO1reg_cjo_2 ~ INreg_moy_2 - 1
+#DW = 0.2258, p-value < 2.2e-16
+#alternative hypothesis: true autocorrelation is greater than 0
+
+# H0 est rejeté, on estime les coefficients avec la méthode de Prais-Winsten
+
+
+
+
+
+
+
+
+
+
+
 
 # On en déduit qu'il n'y a pas de cointégration entre IO1 et IN, le R2 mesuré est donc significatif
 
@@ -143,7 +217,7 @@ summary(regression)
 
 #3)
 
-res11= lm(IO1reg_cjo_2 ~ ratio_conso_INreg_moy_2 + Ratio_IPC_INreg_moy_2 )
+res11= lm(IO1reg_cjo_2 ~ ratio_conso_INreg_moy_2 + Ratio_IPC_INreg_moy_2 + carbu_INreg_moy_2)
 summary(res11)
 
 #Residuals:
@@ -152,27 +226,72 @@ summary(res11)
 
 #Coefficients:
 #  Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)             29.474206   5.109754   5.768 3.67e-08 ***
-#  ratio_conso_INreg_moy_2 -0.042329   0.004745  -8.922 6.88e-16 ***
-#  Ratio_IPC_INreg_moy_2    0.049325   0.003370  14.636  < 2e-16 ***
+#(Intercept)              7.982e+00  4.486e+00   1.779  0.07699 .  
+#ratio_conso_INreg_moy_2  1.960e-02  6.968e-03   2.813  0.00548 ** 
+#  Ratio_IPC_INreg_moy_2    8.746e-03  4.677e-03   1.870  0.06322 .  
+#carbu_INreg_moy_2       -7.909e-05  7.535e-06 -10.497  < 2e-16 ***
 #  ---
 #  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-# Residual standard error: 4.453 on 171 degrees of freedom
-# Multiple R-squared:  0.6177,  Adjusted R-squared:  0.6132 
-# F-statistic: 138.1 on 2 and 171 DF,  p-value: < 2.2e-16
+#Residual standard error: 3.478 on 170 degrees of freedom
+#Multiple R-squared:  0.768,  Adjusted R-squared:  0.7639 
+#F-statistic: 187.6 on 3 and 170 DF,  p-value: < 2.2e-16
 
 
 plot(IO1reg_cjo_2)
 par(new=T)
 plot(fitted(res11))
 
-# Test de la normalité des résidus MLR 3
-# je ne sais pas comment tester ça
-
 # Test de l'homoscédasticité des résidus MLR 5
-bartlett.test(IO1reg_cjo_2-fitted(res11))
-#/!\ pb dans le code, à revoir
+white.test()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Test d'autocorrélation des résidus : Durbin & Watson Test
+# H0 : phi=0 absence de corrélation entre les résidus
+# H1 : phi non nul : corrélation entre les résidus
+# la lecture de la table de durbin et watson donne les zones de rejet
+# n=200, k=3 (1 variable explicative et 200 observations)
+# 0 -> 1,643 : rejet de H0
+# 1,643 -> 1,704 : incertitude
+# 1,704 -> 2,296 : non rejet de H0
+# 2,296 -> 2,357 : incertitude
+# 2,357 -> 4 : rejet de H0
+
+dwtest(IO1reg_cjo_2 ~ ratio_conso_INreg_moy_2 + Ratio_IPC_INreg_moy_2 + carbu_INreg_moy_2)
+
+#Durbin-Watson test
+#data:  IO1reg_cjo_2 ~ ratio_conso_INreg_moy_2 + Ratio_IPC_INreg_moy_2 +     carbu_INreg_moy_2
+#DW = 0.857, p-value = 2.863e-15
+#alternative hypothesis: true autocorrelation is greater than 0
+
+# H0 est rejeté, on estime les coefficients avec la méthode de Prais-Winsten
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Analyse critique des résultats
 # R2 ajusté : 0,61, toutes les p-values à ***
@@ -219,7 +338,15 @@ granger.test(cbind(IO1reg_cjo_2, ratio_conso_INreg_moy_2, Ratio_IPC_INreg_moy_2,
 #(°) : les variables explicatives ne s'interexpliquent pas les unes les autres
 
 ###########################################################################################################
-# Modèle VAR
+
+
+
+
+
+# après chaque régression, tester l'autocorrélation des résidus
+# test de durbin watson
+# si ce test permet de rejeter l'hypotèse H0: non autocorrélation
+# alors on fait une estimation par price winston et non par MCO
 
 
 

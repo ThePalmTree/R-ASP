@@ -18,3 +18,13 @@ create_mat = function(var) {
 # la dernière ligne de m contient les 12 valeurs de IN de sept 2013 à sept 2014
 # en cas d'utilisation de séries désaisonnalisées, il faut supprimer les 6 premières 
 # et les 6 dernières lignes en raison des valeurs manquantes résultant de la désaisonnalisation
+
+create_mat_trimestre = function(var) {
+  m = matrix(c(rep(c(rep(0,237)),3)),nrow=237,byrow=TRUE)
+  for (j in 1:3) {
+    for(i in (j+1):237)
+      m[i,j]=var[i-j]
+  }
+  res = m[3:237,1:3] # on supprime les mois ou l'on a pas toutes les donnees à cause du decallage
+  return(res)
+}
