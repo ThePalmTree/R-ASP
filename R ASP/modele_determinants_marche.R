@@ -9,6 +9,7 @@ library(MSBVAR)
 library(car)
 library(lmtest)
 library(prais)
+library(het.test)
 
 #Importation des fichiers R nécéssaires
 source("desaisonnalisation.r")
@@ -52,11 +53,19 @@ print(INreg_moy_2)
 croissance_2=c(croissance[35:169],croissance[193:231])
 INreg_moy_2=c(INreg_moy[23:157],INreg_moy[181:219])
 IO1reg_cjo_2 = c(IO1reg_cjo[23:157],IO1reg_cjo[181:219])
+
 ratio_conso_INreg_moy_2 = c(ratio_conso_INreg_moy[1:135],ratio_conso_INreg_moy[159:197])
 Ratio_IPC_INreg_moy_2 = c(Ratio_IPC_INreg_moy[1:135],Ratio_IPC_INreg_moy[159:197])
 carbu_INreg_moy_2 = c(carbu_INreg_moy[1:135],carbu_INreg_moy[159:197])
 croissance_INreg_moy_2 = c(croissance_INreg_moy[1:135],croissance_INreg_moy[159:197])
 
+IO14reg_cjo_3 = c(IO14reg_cjo[7:76],IO14reg_cjo[100:147])
+print(IO14reg_cjo_3)
+print(INreg_moy_3)
+INreg_moy_3 = INreg_moy_2[57:174]
+Ratio_IPC_INreg_moy_3 = Ratio_IPC_INreg_moy_2[57:174]
+carbu_INreg_moy_3 = carbu_INreg_moy_2[57:174]
+croissance_INreg_moy_3 = croissance_INreg_moy_2[57:174]
 ###########################################################################################################
 # Critique de la pertinence du PIB (de la croissance)
 res10= lm(log(IO1reg_cjo_2)~ log(1+croissance_2)+log(INreg_moy_2))
@@ -86,7 +95,8 @@ print(IO1reg_cjo_2)
 # H0 : var(résidu)=cste (homoscédasticité)
 # H1 : var(résidu) non cste (hétéroscédasticité)
 
-white.test()
+whites.htest(lm(log(IO1reg_cjo_2)~ log(1+croissance_2)+log(INreg_moy_2)))
+
 
 
 
@@ -145,8 +155,18 @@ prais.winsten(log(IO1reg_cjo_2)~ log(1+croissance_2)+log(INreg_moy_2), data=myda
 
 
 
+
+
+
+
+
+
+
+
+
+
 # Test de GRANGER
-granger.test(cbind(IO1reg_cjo_2,croissance_INreg_moy_2),12)
+granger.test(cbind(IO14reg_cjo_3,croissance_INreg_moy_3),12)
 # H0 Croissance do not granger_cause IO1:
 # pvalue = 0.9625596
 # -> on ne peut pas rejeter H0
@@ -262,7 +282,7 @@ par(new=T)
 plot(fitted(res11))
 
 # Test de l'homoscédasticité des résidus MLR 5
-white.test()
+white.htest()
 
 
 
@@ -377,9 +397,170 @@ granger.test(cbind(IO1reg_cjo_2, ratio_conso_INreg_moy_2, Ratio_IPC_INreg_moy_2,
 
 
 
+###########################################################################################################
+###########################################################################################################
+###########################################################################################################
+
+# IO14
+
+# Test de cointégration
+regression = lm(IO14reg_cjo[7:145] ~ INreg_cjo[93:231] -1)
+summary(regression)
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#INreg_cjo[93:233] 0.764911   0.007565   101.1   <2e-16 ***
+#Residual standard error: 15.26 on 138 degrees of freedom
+#(2 observations deleted due to missingness)
+#Multiple R-squared:  0.9867,  Adjusted R-squared:  0.9866 
+#F-statistic: 1.022e+04 on 1 and 138 DF,  p-value: < 2.2e-16
+
+beta = coef(regression)[1]
+adf.test(cbind(IO14reg_cjo[7:145]-beta*INreg_cjo[93:231]))
+# Dickey-Fuller = -2.2922, Lag order = 5, p-value = 0.4548
+kpss.test(cbind(IO1reg_cjo[7:145]-beta*INreg_cjo[93:231]))
+# LAG : 2 ; pvalue = 0.01
+
+regression = lm(IO14reg_cjo_3 ~ INreg_moy_3 -1)
+summary(regression)
+#Residuals:
+#  Min      1Q  Median      3Q     Max 
+#-29.779  -5.996   1.326   7.035  37.301 
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#INreg_moy_3  0.06445    0.00045   143.2   <2e-16 ***
+#Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#Residual standard error: 9.956 on 117 degrees of freedom
+#Multiple R-squared:  0.9943,  Adjusted R-squared:  0.9943 
+#F-statistic: 2.051e+04 on 1 and 117 DF,  p-value: < 2.2e-16
 
 
 
+# Test d'autocorrélation des résidus : Durbin & Watson Test
+# H0 : phi=0 absence de corrélation entre les résidus
+# H1 : phi non nul : corrélation entre les résidus
+# la lecture de la table de durbin et watson donne les zones de rejet
+# n=200, k=1 (1 variable explicative et 100 observations)
+# 0 -> 1,65 : rejet de H0
+# 1,65 -> 1,69 : incertitude
+# 1,69 -> 2,31 : non rejet de H0
+# 2,31 -> 2,35: incertitude
+# 2,35 -> 4 : rejet de H0
+
+dwtest(IO14reg_cjo_3 ~ INreg_moy_3 -1)
+#Durbin-Watson test
+#data:  IO14reg_cjo_3 ~ INreg_moy_3 - 1
+#DW = 0.5944, p-value = 6.832e-15
+#alternative hypothesis: true autocorrelation is greater than 0
+
+prais.winsten(IO14reg_cjo_3 ~ INreg_moy_3 -1, data=mydata)
+#Residuals:
+#  Min      1Q  Median      3Q     Max 
+#-21.403  -3.928  -1.068   2.829  37.328 
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#Intercept   86.96047   24.15326   3.600 0.000469 ***
+#  INreg_moy_3  0.02177    0.01186   1.835 0.069051 .  
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#Residual standard error: 6.809 on 116 degrees of freedom
+#Multiple R-squared:  0.9834,  Adjusted R-squared:  0.9831 
+#F-statistic:  3428 on 2 and 116 DF,  p-value: < 2.2e-16
+#Rho Rho.t.statistic Iterations
+#0.6095911         8.19367          5
+
+
+
+
+#3)
+
+res14= lm(IO14reg_cjo_3 ~ Ratio_IPC_INreg_moy_3 + carbu_INreg_moy_3)
+summary(res11)
+#Residuals:
+#  Min       1Q   Median       3Q      Max 
+#-22.9618  -3.6317  -0.0402   4.0310  29.4304 
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)            1.087e+02  9.606e+00  11.311  < 2e-16 ***
+#  Ratio_IPC_INreg_moy_3  1.912e-02  3.786e-03   5.050 1.68e-06 ***
+#  carbu_INreg_moy_3     -5.214e-05  1.226e-05  -4.252 4.34e-05 ***
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#Residual standard error: 7.362 on 115 degrees of freedom
+#Multiple R-squared:  0.3372,  Adjusted R-squared:  0.3256 
+#F-statistic: 29.25 on 2 and 115 DF,  p-value: 5.378e-11
+
+plot(IO14reg_cjo_3)
+par(new=T)
+plot(fitted(res11))
+
+# Test de l'homoscédasticité des résidus MLR 5
+white.htest()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Test d'autocorrélation des résidus : Durbin & Watson Test
+# H0 : phi=0 absence de corrélation entre les résidus
+# H1 : phi non nul : corrélation entre les résidus
+# la lecture de la table de durbin et watson donne les zones de rejet
+# n=200, k=3 (1 variable explicative et 200 observations)
+# 0 -> 1,643 : rejet de H0
+# 1,643 -> 1,704 : incertitude
+# 1,704 -> 2,296 : non rejet de H0
+# 2,296 -> 2,357 : incertitude
+# 2,357 -> 4 : rejet de H0
+
+dwtest(IO14reg_cjo_3 ~ Ratio_IPC_INreg_moy_3 + carbu_INreg_moy_3)
+#Durbin-Watson test
+#data:  IO14reg_cjo_3 ~ Ratio_IPC_INreg_moy_3 + carbu_INreg_moy_3
+#DW = 1.0449, p-value = 2.957e-08
+#alternative hypothesis: true autocorrelation is greater than 0
+ 
+prais.winsten(IO14reg_cjo_3 ~ Ratio_IPC_INreg_moy_3 + carbu_INreg_moy_3, data=mydata)
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#Intercept              1.054e+02  1.512e+01   6.971 2.11e-10 ***
+#  Ratio_IPC_INreg_moy_3  2.029e-02  6.029e-03   3.365  0.00104 ** 
+#  carbu_INreg_moy_3     -4.980e-05  1.938e-05  -2.570  0.01144 *  
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#Residual standard error: 6.48 on 115 degrees of freedom
+#Multiple R-squared:  0.9915,  Adjusted R-squared:  0.9913 
+#F-statistic:  4487 on 3 and 115 DF,  p-value: < 2.2e-16
+#Rho Rho.t.statistic Iterations
+#0.4771451        5.820566   
+# des pvalues significatives même en ajustant l'autocorrélation des résidus
+
+# Mesure de la causalité : GRANGER test
+granger.test(cbind(IO14reg_cjo_3,INreg_moy_3),12)
+#F-statistic   p-value
+#INreg_moy_3 -> IO14reg_cjo_3   0.4213842 0.9508822
+#IO14reg_cjo_3 -> INreg_moy_3   1.1325880 0.3462710
+# pas de réelle causalité
+
+granger.test(cbind(IO14reg_cjo_3, Ratio_IPC_INreg_moy_3, croissance_INreg_moy_3),12)
+#F-statistic    p-value
+#Ratio_IPC_INreg_moy_3 -> IO14reg_cjo_3            0.8272084 0.62224348
+#croissance_INreg_moy_3 -> IO14reg_cjo_3           0.9542019 0.49876909
+#IO14reg_cjo_3 -> Ratio_IPC_INreg_moy_3            1.7267153 0.07604835
+#croissance_INreg_moy_3 -> Ratio_IPC_INreg_moy_3   0.8732434 0.57669536
+#IO14reg_cjo_3 -> croissance_INreg_moy_3           1.5107269 0.13729368
+#Ratio_IPC_INreg_moy_3 -> croissance_INreg_moy_3   0.6403613 0.80170135
+# Pas de réelle causalité
+
+# il faut prendre en compte le fait que bcp d'observations sont supprimées (plus de la moitié)
+# en effet, IO14 commence en 2002, on supprime 2009 et 2010 à cause de la prime à la casse, 
+# on perd encore deux fois 6 mois avec la désaisonnalisation
+# et encore 1 an avec les valeurs de INreg_moy qui somment entres autre des valeurs de IN de 2009-2010...
+# au total il ne reste plus que 180 valeurs sur 337...
 
 
 
