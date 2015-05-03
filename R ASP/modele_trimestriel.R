@@ -6,6 +6,7 @@ rm(list=ls())
 setwd("~/GitHub/R-ASP/R ASP")
 library(tseries)
 library(MSBVAR)
+library(prais)
 
 #Importation des fichiers R nécéssaires
 source("desaisonnalisation.r")
@@ -45,6 +46,22 @@ plot(IO1reg_cjo_2)
 par(new=T)
 plot(fitted(res20))
 
+# Sortie : 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# INreg_trim_2[1:209]  0.007705   0.008405   0.917   0.3605    
+# INreg_trim_2[4:212]  0.017103   0.009055   1.889   0.0606 .  
+# INreg_trim_2[7:215]  0.008707   0.009045   0.963   0.3371    
+# INreg_trim_2[10:218] 0.053917   0.008449   6.382  1.5e-09 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 5.398 on 176 degrees of freedom
+# (29 observations deleted due to missingness)
+# Multiple R-squared:  0.9857,  Adjusted R-squared:  0.9854 
+# F-statistic:  3037 on 4 and 176 DF,  p-value: < 2.2e-16
+
+
 # Test d'autocorrélation des résidus : Durbin & Watson Test
 # H0 : phi=0 absence de corrélation entre les résidus
 # H1 : phi non nul : corrélation entre les résidus
@@ -63,6 +80,30 @@ dwtest(IO1reg_cjo_2[1:209]~INreg_trim_2[1:209]+INreg_trim_2[4:212]+INreg_trim_2[
 #data:  IO1reg_cjo_2[1:209] ~ INreg_trim_2[1:209] + INreg_trim_2[4:212] +     INreg_trim_2[7:215] + INreg_trim_2[10:218] - 1
 #DW = 0.1969, p-value < 2.2e-16
 #alternative hypothesis: true autocorrelation is greater than 0
+
+
+# Test de Prais Winsten
+prais.winsten(IO1reg_cjo_2[1:209]~INreg_trim_2[1:209]+INreg_trim_2[4:212]+INreg_trim_2[7:215]+INreg_trim_2[10:218]-1, data=mydata)
+
+
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -6.6663 -1.5580 -0.0304  1.5096  8.7204 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)   
+# Intercept            34.893981  15.746603   2.216  0.02798 * 
+#   INreg_trim_2[1:209]  -0.013444   0.009330  -1.441  0.15139   
+# INreg_trim_2[4:212]  -0.002480   0.010200  -0.243  0.80822   
+# INreg_trim_2[7:215]   0.004664   0.010240   0.455  0.64938   
+# INreg_trim_2[10:218]  0.027908   0.009393   2.971  0.00338 **
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 2.802 on 175 degrees of freedom
+# Multiple R-squared:  0.7269,  Adjusted R-squared:  0.7191 
+# F-statistic: 93.17 on 5 and 175 DF,  p-value: < 2.2e-16
+
 
 
 ###########################################################################################################
@@ -116,6 +157,28 @@ dwtest(IO14reg_cjo_2[1:98]~INreg_year_2[1:98]+INreg_year_2[13:110]+INreg_year_2[
 #data:  IO14reg_cjo_2[1:98] ~ INreg_year_2[1:98] + INreg_year_2[13:110] +     INreg_year_2[25:122] - 1
 #DW = 0.9293, p-value = 1.119e-09
 #alternative hypothesis: true autocorrelation is greater than 0
+
+# Test de Prais Winsten
+prais.winsten(IO14reg_cjo_2[1:98]~INreg_year_2[1:98]+INreg_year_2[13:110]+INreg_year_2[25:122]-1, data=mydata)
+
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -16.994  -4.582  -0.207   3.438  34.272 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# Intercept            55.782170  45.934472   1.214 0.227642    
+# INreg_year_2[1:98]    0.062549   0.017678   3.538 0.000628 ***
+#   INreg_year_2[13:110] -0.029848   0.021320  -1.400 0.164811    
+# INreg_year_2[25:122]  0.003046   0.019772   0.154 0.877902    
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 6.568 on 94 degrees of freedom
+# Multiple R-squared:  0.9896,  Adjusted R-squared:  0.9891 
+# F-statistic:  2232 on 4 and 94 DF,  p-value: < 2.2e-16
+
+
 
 ###########################################################################################################
 # projection du modèle sur le volume engendré par le simplexe

@@ -1,6 +1,6 @@
 # Ce fichier contient les fonctions nécessaires à la projection d'un vecteur de Rn sur le simplexe de dimension n
 
-# Cette fonction teste si le point P appartient au simplexe S, sachant que P appartient au sous espace engendré par les vecteurs de S
+# Cette fonction teste si le point P appartient au simplexe
 is_within <- function(p)
 {
   sum_p <- 0
