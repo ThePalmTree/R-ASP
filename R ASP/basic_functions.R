@@ -1,4 +1,4 @@
-# Ce fichier contient les fonctions générales utilisées dans les differents modeles
+# Ce fichier contient les fonctions gÃ©nÃ©rales utilisÃ©es dans les differents modeles
 
 
 # MATRICE DE REGRESSION
@@ -10,14 +10,14 @@ create_mat = function(var) {
     for(i in (j+1):237)
       m[i,j]=var[i-j]
   }
-  res = m[13:237,1:12] # on supprime les mois ou l'on a pas toutes les donnees à cause du decallage
+  res = m[13:237,1:12] # on supprime les mois ou l'on a pas toutes les donnees Ã  cause du decallage
   return(res)
 }
 
-# la première ligne de m contient les 12 valeurs de IN pour l'année 1995
-# la dernière ligne de m contient les 12 valeurs de IN de sept 2013 à sept 2014
-# en cas d'utilisation de séries désaisonnalisées, il faut supprimer les 6 premières 
-# et les 6 dernières lignes en raison des valeurs manquantes résultant de la désaisonnalisation
+# la premiÃ¨re ligne de m contient les 12 valeurs de IN pour l'annÃ©e 1995
+# la derniÃ¨re ligne de m contient les 12 valeurs de IN de sept 2013 Ã  sept 2014
+# en cas d'utilisation de sÃ©ries dÃ©saisonnalisÃ©es, il faut supprimer les 6 premiÃ¨res 
+# et les 6 derniÃ¨res lignes en raison des valeurs manquantes rÃ©sultant de la dÃ©saisonnalisation
 
 create_mat_trimestre = function(var) {
   m = matrix(c(rep(c(rep(0,237)),3)),nrow=237,byrow=TRUE)
@@ -25,6 +25,11 @@ create_mat_trimestre = function(var) {
     for(i in (j+1):237)
       m[i,j]=var[i-j]
   }
-  res = m[3:237,1:3] # on supprime les mois ou l'on a pas toutes les donnees à cause du decallage
+  res = m[3:237,1:3] # on supprime les mois ou l'on a pas toutes les donnees Ã  cause du decallage
   return(res)
 }
+
+
+trade_plot<-reactive({
+    tryCatch(selected_output()$get_best_result()$get_plot(),error=function(err) blank_plotly())
+  })
